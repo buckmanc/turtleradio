@@ -1,127 +1,56 @@
 #!/usr/bin/env bash
 
-#/etc/bluetooth/main.conf
-#added experimental = true
-#changed fast connect to true
-
-# maybe do one path per day for performance, join them later?
 gitRoot="$(git rev-parse --show-toplevel)"
-logRootPath="$gitRoot/logs"
-logPath="${logRootPath}/log.log"
-logPathRaw="${logRootPath}/raw.log"
-logPathPaired="${logRootPath}/paired.log"
-logPathConnectAttempts="${logRootPath}/connect_attempts.log"
 
-audioPath="$gitRoot/tmnt.wav"
-if [[ ! -f "$audioPath" ]]
+musicDir="$gitRoot/music"
+interstitialsDir="$gitRoot/interstitials"
+
+mkdir -p "$musicDir"
+mkdir -p "$interstitialsDir"
+
+getMusic()
+{
+	find "$musicDir" -type f -iname '*.wav'
+}
+getInterstitials()
+{
+	find "$interstitialsDir" -type f -iname '*.wav'
+}
+
+if [[ -z "$(getMusic)" ]]
 then
-	yt-dlp -x --audio-quality 0 https://www.dailymotion.com/video/x4csk52 --audio-format wav -o "$audioPath"
+	yt-dlp -x --audio-quality 0 https://www.dailymotion.com/video/x4csk52 --audio-format wav --paths "$musicDir" --output "tmnt.wav"
 fi
 
-mkdir -p "${logRootPath}"
-touch "${logPath}"
-touch "${logPathRaw}"
-touch "${logPathPaired}"
-touch "${logPathConnectAttempts}"
-
-bluetoothctl power on
+bluetoothctl system-alias "Turtle Radio"
 
 while true
 do
 
-	echo "scanning..."
-	# bluetoothctl scan on | while read -r line
-	# stdbuf -oL bluetoothctl scan on | while read -r line
-	while read -r line
+	# using source so that the macAddy var is available here
+	source "$gitRoot/bluetoothctl-aggressive-pair.sh"
+
+	# play some audio!
+	while true
 	do
-		if ! grep -iq "${line}" "${logPathRaw}"
+		musicPath="$(getMusic | shuf -n 1)"
+		interstitialPath="$(getInterstitials | shuf -n 1)"
+		if ! aplay -D "bluealsa:DEV=$macAddy,PROFILE=a2dp" "$musicPath"
 		then
-			echo "${line}"
-			echo "${line}" >> "${logPathRaw}"
-		fi
-
-		if [ "${line}" == "Discovery started" ] || [[ "${line}" == *"] Controller "* ]]
-		then
-			continue
-		fi
-
-		# strip control chars
-		line=$(echo "${line}" | ansi2txt | perl -pe 's/[\cA\cB]//g') 
-		event=$(echo "${line}" | grep -Pio '^\[\w+?\] ' | perl -pe 's/[ \[\]]//g')
-		logLine=$(echo "${line}" | perl -pe 's/^(\S+?) (\S+?) (\S+?) (.+)$/\2,\3/g')
-		deviceName=$(echo "${line}" | perl -pe 's/^(\S+?) (\S+?) (\S+?) (.+)$/\4/g')
-		macAddy=$(echo "${line}" | grep -Pio '\w\w:\w\w:\w\w:\w\w:\w\w:\w\w')
-
-
-		bInfo=$(bluetoothctl info "${macAddy}")
-		bName=$(echo "${bInfo}" | grep -Pio '(?<=name: ).+?(?=     |$)')
-		bClass=$(echo "${bInfo}" | grep -Pio '(?<=class: ).+?(?=     |$)')
-		bUUID=$(echo "${bInfo}" | grep -Pio '(?<=UUID: ).+?(?=     |$)')
-		bIcon=$(echo "${bInfo}" | grep -Pio '(?<=Icon: ).+?(?=     |$)')
-		# bIcon houses an enum-like device type
-		# what to do when missing? Are missing items BLE devices/beacons?
-
-		bPaired=$(echo "${bInfo}" | grep -Pio '(?<=Paired: ).+?(?=     |$)')
-		bTrusted=$(echo "${bInfo}" | grep -Pio '(?<=Trusted: ).+?(?=     |$)')
-		bConnected=$(echo "${bInfo}" | grep -Pio '(?<=Connected: ).+?(?=     |$)')
-
-		# echo "macAddy: ${macAddy}"
-		# echo "bInfo: ${bInfo}"
-
-		# only accept device name from the "new" event of the main scan
-		# otherwise, use the one nabbed from bluetoothctl info
-		if [ "${event}" != "NEW" ]
-		then
-			deviceName="${bName}"
-		fi
-
-		logLine="${logLine},\"${deviceName}\",${bIcon},${bClass},\"${bUUID}"\"
-
-		if ! grep -iq "${logLine}" "${logPath}" && [ -n "${deviceName}" ]
-		then
-			echo "${logLine}" | ts "%Y%m%d,%H%M%S," >> "${logPath}"
-		fi
-
-		# probable list of "icon" values that indicate audio output devices to pair with
-		# audio-card
-		# audio-headphones
-		# audio-headset
-		# multimedia-player
-
-		# try only pairing on "new" event for now?
-		# what about the pairing event?
-		if [[ "${bIcon}" =~ ^(audio-.+|multimedia-player)$ ]] && [ "${event}" == "NEW" ]
-		then
-			echo "${deviceName} is an audio device!"
 			break
 		fi
 
-		done < <( stdbuf -oL bluetoothctl scan on )
+		if [[ -n "$interstitialPath" ]]
+		then
+			if ! aplay -D "bluealsa:DEV=$macAddy,PROFILE=a2dp" "$interstitialPath"
+			then
+				break
+			fi
+		fi
 
-	if [ "${bPaired}" == "no" ]
-	then
-		bluetoothctl pair "${macAddy}" 2>&1 | ts "%Y%m%d,%H%M%S," | tee "$logPathConnectAttempts"
-	fi
+	done
 
-	if [ "${bTrusted}" == "no" ]
-	then
-		bluetoothctl trust "${macAddy}" 2>&1 | ts "%Y%m%d,%H%M%S," | tee "$logPathConnectAttempts"
-		# some users disconnect after trust
-	fi
-
-	if [ "${bConnected}" == "no" ]
-	then
-		# bluetoothctl connect "${macAddy}" || bluetoothctl pair "${macAddy}"
-		bluetoothctl connect "${macAddy}" 2>&1 | ts "%Y%m%d,%H%M%S," | tee "$logPathConnectAttempts"
-	fi
-
-	# TODO better checking for if we're successfully paired
-
-	echo "${logLine}" | ts "%Y%m%d,%H%M%S," >> "${logPathPaired}"
-
-	# TODO if this play command doesn't work, try specifying the mac in var MAC and document /etc/asound.conf
-
-	# play some audio!
-	aplay -D "bluealsa:DEV=$macAddy,PROFILE=a2dp" "$audioPath"
+	bluetoothctl remove "$macAddy"
 
 done
+
