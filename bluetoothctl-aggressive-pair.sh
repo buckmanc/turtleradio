@@ -91,8 +91,15 @@ do
 		break
 	fi
 
-	done < <( stdbuf -oL bluetoothctl scan on )
+	loggerPath="$HOME/bin/_log"
+	if [[ -x "$loggerPath" ]]
+	then
+		"$loggerPath" "$deviceName,macAddy"
+	fi
 
+done < <( stdbuf -oL bluetoothctl scan on )
+
+# TODO error handle these
 if [ "$bPaired" == "no" ]
 then
 	bluetoothctl pair "$macAddy" 2>&1 | ts "%Y%m%d,%H%M%S," | tee "$logPathConnectAttempts"
