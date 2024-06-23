@@ -10,14 +10,14 @@ logRootPath="$gitRoot/logs"
 logPath="$logRootPath/log.log"
 logPathRaw="$logRootPath/raw.log"
 logPathPaired="$logRootPath/paired.log"
-logPathConnectAttempts="$logRootPath/connect_attempts.log"
+logPathConnectAttemptMessages="$logRootPath/connect_attempt_messages.log"
 exclusionsPath="$gitRoot/exclusions.config"
 
 mkdir -p "$logRootPath"
 touch -a "$logPath"
 touch -a "$logPathRaw"
 touch -a "$logPathPaired"
-touch -a "$logPathConnectAttempts"
+touch -a "$logPathConnectAttemptMessages"
 touch -a "$exclusionsPath"
 
 bluetoothctl power on
@@ -41,12 +41,14 @@ do
 			continue
 		fi
 
+		macAddyRegex='([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'
+
 		# strip control chars
 		line=$(echo "$line" | ansi2txt | perl -pe 's/[\cA\cB]//g') 
 		event=$(echo "$line" | grep -Pio '^\[\w+?\] ' | perl -pe 's/[ \[\]]//g')
 		logLine=$(echo "$line" | perl -pe 's/^(\S+?) (\S+?) (\S+?) (.+)$/\2,\3/g')
 		deviceName=$(echo "$line" | perl -pe 's/^(\S+?) (\S+?) (\S+?) (.+)$/\4/g')
-		macAddy=$(echo "$line" | grep -Pio '\w\w:\w\w:\w\w:\w\w:\w\w:\w\w')
+		macAddy=$(echo "$line" | grep -Pio "$macAddyRegex" | head -n 1)
 
 
 		bInfo=$(bluetoothctl info "$macAddy")
@@ -84,19 +86,24 @@ do
 			continue
 		fi
 
-		borkedLogPath="$logRootPath/borked_$(date +%F_%H).log"
-		if [[ -f "$borkedLogPath" ]]
+		logPathConnectAttempts="$logRootPath/connect_attempts_$(date +%F_%H).log"
+		if [[ -f "$logPathConnectAttempts" ]]
 		then
-			borkedCount="$(grep -Fic "$macAddy" "$borkedLogPath")"
-			if [[ "$borkedCount" -ge 4 ]]
+			attemptCount="$(grep -Fic "$macAddy" "$logPathConnectAttempts")"
+			if [[ "$attemptCount" -ge 3 ]]
 			then
-				echo "$deviceName has failed to connect repeatedly recently, skipping"
+				echo "$deviceName has been attempted $attemptCount times. Skipping"
 				continue
 			fi
 		fi
 
+		if echo "$deviceName" | grep -Piq '(rssi|txpower): ' || echo "$deviceName" | grep -Piq "$macAddyRegex"
+		then
+			deviceName=''
+		fi
+
 		loggerPath="$HOME/bin/_log"
-		if [[ -x "$loggerPath" ]] && echo "$deviceName" | grep -Piqv '(rssi|txpower): '
+		if [[ -x "$loggerPath" ]]
 		then
 			"$loggerPath" "bluetooth" "\"$deviceName\",$macAddy" > /dev/null
 		fi
@@ -115,9 +122,10 @@ do
 			break
 		fi
 
-	done < <( stdbuf -oL bluetoothctl scan on )
+	done < <( stdbuf -oL bluetoothctl --timeout 99999 scan on )
 
 	connectError=0
+	echo "$macAddy" >> "$logPathConnectAttempts"
 
 	if [[ "$bPaired" == "no" && "$connectError" == "0" ]]
 	then
@@ -127,7 +135,7 @@ do
 			connectError=1
 		fi
 
-		echo "$msg"	| ts "%F,%R," | tee -a "$logPathConnectAttempts"
+		echo "$msg"	| ts "%F,%R," | tee -a "$logPathConnectAttemptMessages"
 	fi
 
 	if [[ "$bTrusted" == "no" && "$connectError" == "0" ]]
@@ -138,7 +146,7 @@ do
 			connectError=1
 		fi
 
-		echo "$msg"	| ts "%F,%R," | tee -a "$logPathConnectAttempts"
+		echo "$msg"	| ts "%F,%R," | tee -a "$logPathConnectAttemptMessages"
 	fi
 
 	if [[ "$bConnected" == "no" && "$connectError" == "0" ]]
@@ -149,7 +157,7 @@ do
 			connectError=1
 		fi
 
-		echo "$msg"	| ts "%F,%R," | tee -a "$logPathConnectAttempts"
+		echo "$msg"	| ts "%F,%R," | tee -a "$logPathConnectAttemptMessages"
 	fi
 
 	# if there are no errors from trying to connect
@@ -158,8 +166,6 @@ do
 	if [[ "$connectError" == "0" ]]
 	then
 		break
-	else
-		echo "$macAddy" >> "$borkedLogPath"
 	fi
 
 done

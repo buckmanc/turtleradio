@@ -22,10 +22,22 @@ then
 	yt-dlp -x --audio-quality 0 https://www.dailymotion.com/video/x4csk52 --audio-format wav --paths "$musicDir" --output "tmnt.wav"
 fi
 
+macAddyRegex='([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'
+
 bluetoothctl system-alias "Turtle Radio"
 
 while true
 do
+
+	pairedDevices="$(bluetoothctl devices | grep -iPo "$macAddyRegex")"
+	if [[ -n "$pairedDevices" ]]
+	then
+		echo "unpairing devices..."
+	fi
+	echo "$pairedDevices" | while read -r device
+	do
+		bluetoothctl remove "$device"
+	done
 
 	# using source so that the macAddy var is available here
 	source "$gitRoot/bluetoothctl-aggressive-pair.sh"
