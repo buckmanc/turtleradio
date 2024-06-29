@@ -58,30 +58,34 @@ do
 	done
 
 	# using source so that the macAddy var is available here
-	source "$btAggPairPath"
+	source "$btAggPairPath" --loop
 
-	# TODO record how long audio played
-	# play some audio!
-	while true
-	do
-		musicPath="$(getMusic | shuf -n 1)"
-		interstitialPath="$(getInterstitials | shuf -n 1)"
-		if ! aplay -D "bluealsa:DEV=$macAddy,PROFILE=a2dp" "$musicPath"
-		then
-			break
-		fi
+	if [[ -n "$macAddy" ]]
+	then
 
-		if [[ -n "$interstitialPath" ]]
-		then
-			if ! aplay -D "bluealsa:DEV=$macAddy,PROFILE=a2dp" "$interstitialPath"
+		# TODO record how long audio played
+		# play some audio!
+		while true
+		do
+			musicPath="$(getMusic | shuf -n 1)"
+			interstitialPath="$(getInterstitials | shuf -n 1)"
+			if ! aplay -D "bluealsa:DEV=$macAddy,PROFILE=a2dp" "$musicPath"
 			then
 				break
 			fi
-		fi
 
-	done
+			if [[ -n "$interstitialPath" ]]
+			then
+				if ! aplay -D "bluealsa:DEV=$macAddy,PROFILE=a2dp" "$interstitialPath"
+				then
+					break
+				fi
+			fi
 
-	bluetoothctl remove "$macAddy"
+		done
+
+		bluetoothctl remove "$macAddy"
+	fi
 
 done
 
