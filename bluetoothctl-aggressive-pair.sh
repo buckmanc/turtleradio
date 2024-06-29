@@ -4,14 +4,13 @@
 #added experimental = true
 #changed fast connect to true
 
-# maybe do one path per day for performance, join them later?
 gitRoot="$(git rev-parse --show-toplevel)"
-logRootPath="$gitRoot/logs"
-logPath="$logRootPath/log.log"
-logPathRaw="$logRootPath/raw.log"
-logPathPaired="$logRootPath/paired.log"
-logPathConnectAttemptMessages="$logRootPath/connect_attempt_messages.log"
-exclusionsPath="$gitRoot/exclusions.config"
+exclusionsPath="$gitRoot/bt_exclusions.config"
+logPathConnectAttemptsDir="$HOME/.logs/bluetooth_connect_attempts/"
+mkdir -p "$logPathConnectAttemptsDir"
+
+# use the logger next to this script
+loggerPath="$(dirname "$0")/_log"
 
 optLogOnly=0
 optLoop=0
@@ -39,11 +38,6 @@ else
 	timeoutTime=99999
 fi
 
-mkdir -p "$logRootPath"
-touch -a "$logPath"
-touch -a "$logPathRaw"
-touch -a "$logPathPaired"
-touch -a "$logPathConnectAttemptMessages"
 touch -a "$exclusionsPath"
 
 bluetoothctl power on
@@ -59,11 +53,6 @@ do
 		if [[ "$optAllDeets" == "1" ]]
 		then
 			echo "$line"
-		fi
-
-		if ! grep -iq "$line" "$logPathRaw"
-		then
-			echo "$line" >> "$logPathRaw"
 		fi
 
 		if [[ "$line" == "Discovery started" ]] || [[ "$line" == *"] Controller "* ]]
@@ -113,22 +102,13 @@ do
 
 		logLine="$logLine,\"$deviceName\",$bIcon,$bClass,\"$bUUID"\"
 
-		if ! grep -Fiq "$logLine" "$logPath" && [[ -n "$deviceName" ]]
-		then
-			echo "$logLine" | ts "%F,%R," >> "$logPath"
-		fi
-
 		if echo "$deviceName" | grep -Piq '^"?(rssi|txpower|manufacturerdata\.key|manufacturerdata\.value|uuids): ' || echo "$deviceName" | grep -Piq "$macAddyRegex"
 		then
 			deviceName=''
 		fi
 
 		# primary log
-		loggerPath="$HOME/bin/_log"
-		if [[ -x "$loggerPath" ]]
-		then
-			logResult="$("$loggerPath" "bluetooth" "\"$deviceName\",$macAddy")"
-		fi
+		logResult="$("$loggerPath" "bluetooth" "\"$deviceName\",$macAddy")"
 
 		if [[ "$optLogOnly" == "1" ]]
 		then
@@ -157,7 +137,7 @@ do
 			continue
 		fi
 
-		logPathConnectAttempts="$logRootPath/connect_attempts_$(date +%F_%H).log"
+		logPathConnectAttempts="$logPathConnectAttemptsDir/$HOSTNAME_$(date +%F_%H).log"
 		if [[ -f "$logPathConnectAttempts" ]]
 		then
 			attemptCount="$(grep -Fic "$macAddy" "$logPathConnectAttempts")"
@@ -207,7 +187,7 @@ do
 			connectError=1
 		fi
 
-		echo "$msg"	| ts "%F,%R," | tee -a "$logPathConnectAttemptMessages"
+		echo "$msg"
 	fi
 
 	if [[ "$bTrusted" == "no" && "$connectError" == "0" ]]
@@ -218,7 +198,7 @@ do
 			connectError=1
 		fi
 
-		echo "$msg"	| ts "%F,%R," | tee -a "$logPathConnectAttemptMessages"
+		echo "$msg"
 	fi
 
 	if [[ "$bConnected" == "no" && "$connectError" == "0" ]]
@@ -229,7 +209,7 @@ do
 			connectError=1
 		fi
 
-		echo "$msg"	| ts "%F,%R," | tee -a "$logPathConnectAttemptMessages"
+		echo "$msg"
 	fi
 
 	# if there are no errors from trying to connect
@@ -244,4 +224,4 @@ done
 
 # TODO better checking for if we're successfully paired
 
-echo "$logLine" | ts "%F,%R," >> "$logPathPaired"
+"$loggerPath" "bluetooth-paired" "$logLine" --log-all

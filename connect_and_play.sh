@@ -5,6 +5,24 @@ gitRoot="$(git rev-parse --show-toplevel)"
 musicDir="$gitRoot/music"
 interstitialsDir="$gitRoot/interstitials"
 
+# sync script changes if the home path version exists
+
+loggerPath="$gitRoot/_log"
+loggerPathHome="$HOME/bin/_log"
+if [[ -x "$loggerPathHome" ]]
+then
+	rsync -hau "$loggerPathHome" "$loggerPath"
+	rsync -hau "$loggerPath" "$loggerPathHome"
+fi
+
+btAggPairPath="$gitRoot/bluetoothctl-aggressive-pair.sh"
+btAggPairPathHome="$HOME/bin/bluetoothctl-aggressive-pair.sh"
+if [[ -x "$btAggPairPathHome" ]]
+then
+	rsync -hau "$btAggPairPathHome" "$btAggPairPath"
+	rsync -hau "$btAggPairPath" "$btAggPairPathHome"
+fi
+
 mkdir -p "$musicDir"
 mkdir -p "$interstitialsDir"
 
@@ -40,8 +58,9 @@ do
 	done
 
 	# using source so that the macAddy var is available here
-	source "$gitRoot/bluetoothctl-aggressive-pair.sh"
+	source "$btAggPairPath"
 
+	# TODO record how long audio played
 	# play some audio!
 	while true
 	do
