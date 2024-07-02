@@ -16,7 +16,7 @@ then
 fi
 
 btAggPairPath="$gitRoot/bluetoothctl-aggressive-pair.sh"
-btAggPairPathHome="$HOME/bin/bluetoothctl-aggressive-pair.sh"
+btAggPairPathHome="$HOME/bin/bluetoothctl-aggressive-pair"
 if [[ -x "$btAggPairPathHome" ]]
 then
 	rsync -hau "$btAggPairPathHome" "$btAggPairPath"
