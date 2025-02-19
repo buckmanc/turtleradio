@@ -5,7 +5,15 @@
 #changed fast connect to true
 
 gitRoot="$(git rev-parse --show-toplevel)"
+
+# sync exclusions in the local dir and in the .config folder
 exclusionsPath="$gitRoot/bt_exclusions.config"
+exclusionsPathHome="$HOME/.config/bt_exclusions.config"
+if [[ -x "$exclusionsPathHome" ]]
+then
+	rsync -hau "$exclusionsPathHome" "$exclusionsPath"
+	rsync -hau "$exclusionsPath" "$exclusionsPathHome"
+fi
 logPathConnectAttemptsDir="$HOME/.logs/bluetooth_connect_attempts/"
 mkdir -p "$logPathConnectAttemptsDir"
 
