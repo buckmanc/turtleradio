@@ -50,7 +50,7 @@ do
 	pairedDevices="$(bluetoothctl devices | grep -iPo "$macAddyRegex")"
 	if [[ -n "$pairedDevices" ]]
 	then
-		echo "unpairing devices..."
+		echo "unpairing $(echo "$pairedDevices" | wc -l) devices..."
 	fi
 	echo "$pairedDevices" | while read -r device
 	do
