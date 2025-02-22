@@ -71,6 +71,7 @@ dl()
 	url="$1"
 	destDir="$2"
 	destName="$3"
+
 	yt-dlp -x --audio-quality 0 "$url" --audio-format wav --paths "$destDir" --output "$destName"
 }
 
@@ -81,6 +82,10 @@ fi
 
 if [[ -z "$(getRareMusic)" ]]
 then
+	# TODO normalize volume on downloaded files
+	dl https://m.youtube.com/watch?v=04V0HhJatoc "$rareMusicDir" "tmnt_theme_by_horse_the_band.wav"
+	ffmpeg -i "$rareMusicDir/tmnt_theme_by_horse_the_band.wav" -ss 0:22 -c copy "/tmp/tmnt.wav"
+	mv "/tmp/tmnt.wav" "$rareMusicDir/tmnt_theme_by_horse_the_band.wav"
 	dl https://m.youtube.com/watch?v=3HjqVZp-xeI "$rareMusicDir" "tmnt_theme_out_of_the_shadows_2016.wav"
 	dl https://m.youtube.com/watch?v=OAxZo9DSXjI "$rareMusicDir" "tmnt_theme_by_mike_patton_2022.wav"
 fi
