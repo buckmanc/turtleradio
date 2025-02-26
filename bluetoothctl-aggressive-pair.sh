@@ -25,11 +25,13 @@ optLoop=0
 optAllDeets=0
 newRecords=0
 
-setLedsPath="$gitRoot/setLeds.sh"
+setLedsPath="$gitRoot/set-leds.sh"
 setLeds() {
 	if [[ -x "$setLedsPath" ]]
 	then
 		"$setLedsPath" "$@"
+	else
+		echo "bad set-leds path: $setLedsPath"
 	fi
 }
 

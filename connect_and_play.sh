@@ -25,11 +25,13 @@ stopwatch_stop(){
 	echo "$minutes minutes"
 }
 
-setLedsPath="$gitRoot/setLeds.sh"
+setLedsPath="$gitRoot/set-leds.sh"
 setLeds() {
 	if [[ -x "$setLedsPath" ]]
 	then
 		"$setLedsPath" "$@"
+	else
+		echo "bad set-leds path: $setLedsPath"
 	fi
 }
 
