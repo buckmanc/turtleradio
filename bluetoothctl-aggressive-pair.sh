@@ -63,7 +63,7 @@ bluetoothctl power on
 while true
 do
 
-	sedLeds green
+	setLeds green
 
 	echo "scanning..."
 	# bluetoothctl scan on | while read -r line
