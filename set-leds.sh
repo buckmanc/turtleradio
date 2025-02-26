@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+if [[ -z "$HAS_PINCTRL" ]]
+then
+	if ( type pinctrl >/dev/null 2>&1 )
+	then
+		export HAS_PINCTRL=1
+	else
+		export HAS_PINCTRL=0
+	fi
+fi
+
+# back out if pinctrl is not installed
+if [[ "$HAS_PINCTRL" == 0 ]]
+then
+	exit 0
+fi
+
+# set according to what pins your leds are plugged into
+# if you have no leds this has no function
+# designed for the pi stoplight, but should work fine for any set of 3 pins
+red=9
+yellow=10
+green=11
+
+# dl = driving low, aka "off"
+# dh = driving high, aka "on"
+redPowerArg="dl"
+yellowPowerArg="dl"
+greenPowerArg="dl"
+
+ledArg="$1"
+
+# turn on the led specified and all others off
+# otherwise, turn them all off
+if [[ "${ledArg,,}" == "red" ]]
+then
+		redPowerArg="dh"
+		echo "leds: red"
+elif [[ "${ledArg,,}" == "yellow" ]]
+then
+		yellowPowerArg="dh"
+		echo "leds: yellow"
+elif [[ "${ledArg,,}" == "green" ]]
+then
+		greenPowerArg="dh"
+		echo "leds: green"
+elif [[ -n "$ledArg" ]]
+then
+		echo "bad led arg"
+		exit 1
+elif [[ -z "$ledArg" ]]
+then
+	echo "leds: off"
+fi
+
+pinctrl set "$red" op "$redPowerArg"
+pinctrl set "$yellow" op "$yellowPowerArg"
+pinctrl set "$green" op "$greenPowerArg"
+

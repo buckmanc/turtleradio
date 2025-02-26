@@ -25,6 +25,14 @@ optLoop=0
 optAllDeets=0
 newRecords=0
 
+setLedsPath="$gitRoot/setLeds.sh"
+setLeds() {
+	if [[ -x "$setLedsPath" ]]
+	then
+		"$setLedsPath" "$@"
+	fi
+}
+
 for arg in "$@"
 do
 	if [[ "$arg" == "-l" || "$arg" == "--loop" ]]
@@ -52,6 +60,8 @@ bluetoothctl power on
 
 while true
 do
+
+	sedLeds green
 
 	echo "scanning..."
 	# bluetoothctl scan on | while read -r line
@@ -184,6 +194,7 @@ do
 		exit
 	fi
 
+	setLeds yellow
 	connectError=0
 	echo "$macAddy" >> "$logPathConnectAttempts"
 

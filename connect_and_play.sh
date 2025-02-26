@@ -25,6 +25,22 @@ stopwatch_stop(){
 	echo "$minutes minutes"
 }
 
+setLedsPath="$gitRoot/setLeds.sh"
+setLeds() {
+	if [[ -x "$setLedsPath" ]]
+	then
+		"$setLedsPath" "$@"
+	fi
+}
+
+shutdown() {
+	setLeds
+	exit 0
+}
+
+
+trap shutdown SIGINT
+
 # sync script changes if the home path version exists
 
 loggerPath="$gitRoot/_log"
@@ -114,6 +130,7 @@ do
 	then
 
 		stopwatch_start
+		setLeds red
 
 		loopCount=0
 		lastPlayedRare=0
@@ -149,6 +166,7 @@ do
 		done
 
 		playTime="$(stopwatch_stop)"
+		setLeds green
 		logDeviceName="$deviceName"
 
 		if [[ -z "$logDeviceName" ]]
