@@ -6,6 +6,13 @@ musicDir="$gitRoot/music"
 rareMusicDir="$gitRoot/music_rare"
 interstitialsDir="$gitRoot/interstitials"
 
+syncScriptsPath="$gitRoot/sync-script-changes.sh"
+loggerPath="$gitRoot/_log"
+btAggPairPath="$gitRoot/bluetoothctl-aggressive-pair.sh"
+setLedsPath="$gitRoot/set-leds.sh"
+
+"$syncScriptsPath"
+
 stopwatch_start(){
 	if [[ -z "$startTime" ]]
 	then
@@ -25,14 +32,8 @@ stopwatch_stop(){
 	echo "$minutes minutes"
 }
 
-setLedsPath="$gitRoot/set-leds.sh"
 setLeds() {
-	if [[ -x "$setLedsPath" ]]
-	then
 		"$setLedsPath" "$@"
-	else
-		echo "bad set-leds path: $setLedsPath"
-	fi
 }
 
 shutdown() {
@@ -40,26 +41,8 @@ shutdown() {
 	exit 0
 }
 
-
+# turn off leds when this script is ended
 trap shutdown SIGINT
-
-# sync script changes if the home path version exists
-
-loggerPath="$gitRoot/_log"
-loggerPathHome="$HOME/bin/_log"
-if [[ -x "$loggerPathHome" ]]
-then
-	rsync -hau "$loggerPathHome" "$loggerPath"
-	rsync -hau "$loggerPath" "$loggerPathHome"
-fi
-
-btAggPairPath="$gitRoot/bluetoothctl-aggressive-pair.sh"
-btAggPairPathHome="$HOME/bin/bluetoothctl-aggressive-pair"
-if [[ -x "$btAggPairPathHome" ]]
-then
-	rsync -hau "$btAggPairPathHome" "$btAggPairPath"
-	rsync -hau "$btAggPairPath" "$btAggPairPathHome"
-fi
 
 mkdir -p "$musicDir"
 mkdir -p "$rareMusicDir"
