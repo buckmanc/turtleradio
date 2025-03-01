@@ -77,7 +77,12 @@ dl()
 
 	tempPath="/tmp/$destName"
 	rm -f "$tempPath"
-	yt-dlp -x --audio-quality 0 "$url" --audio-format wav --output "$tempPath"
+	if [[ "$url" == *youtu*  || "$url" == *dailymotion* ]]
+	then
+		yt-dlp -q -x --audio-quality 0 "$url" --audio-format wav --output "$tempPath"
+	else
+		curl --disable -q -L "$url" -o "$tempPath"
+	fi
 
 	# if any other args are provided, pass them to ffmpeg
 	if [[ $# -gt 0 ]]
@@ -85,7 +90,7 @@ dl()
 		tempFfmpegPath="/tmp/ffmpeg-dl.wav"
 		rm -f "$tempFfmpegPath"
 		mv "$tempPath" "$tempFfmpegPath"
-		ffmpeg -i "$tempFfmpegPath" $@ -c copy "$tempPath"
+		ffmpeg -hide_banner -loglevel error -i "$tempFfmpegPath" $@ -c copy "$tempPath"
 	fi
 
 	# normalize audio
@@ -96,14 +101,22 @@ dl()
 
 if [[ -z "$(getMusic)" ]]
 then
+	echo "downloading default music..."
 	dl https://www.dailymotion.com/video/x4csk52 "$musicDir" "tmnt_theme_1987.wav"
 fi
 
 if [[ -z "$(getRareMusic)" ]]
 then
+	echo "downloading default rare music..."
 	dl https://m.youtube.com/watch?v=04V0HhJatoc "$rareMusicDir" "tmnt_theme_by_horse_the_band.wav" -ss 0:22.2
 	dl https://m.youtube.com/watch?v=3HjqVZp-xeI "$rareMusicDir" "tmnt_theme_out_of_the_shadows_2016.wav"
 	dl https://m.youtube.com/watch?v=OAxZo9DSXjI "$rareMusicDir" "tmnt_theme_by_mike_patton_2022.wav"
+fi
+
+if [[ -z "$(getInterstitials)" ]]
+then
+	echo "downloading default interstitials..."
+	dl https://www.myinstants.com/media/sounds/cowabunga-tmnt.mp3 "$interstitialsDir" "cowabunga.wav"
 fi
 
 macAddyRegex='([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'
