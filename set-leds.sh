@@ -45,6 +45,18 @@ elif [[ "${ledArg,,}" == "green" ]]
 then
 		greenPowerArg="dh"
 		echo "leds: green"
+elif [[ "${ledArg,,}" == "test" ]]
+then
+	# animate the lights a little
+	sleepies="0.5"
+	for i in $(seq 1 2)
+	do
+		"$0" green && sleep "$sleepies"
+		"$0" yellow && sleep "$sleepies"
+		"$0" red && sleep "$sleepies"
+	done
+	"$0"
+	exit 0
 elif [[ -n "$ledArg" ]]
 then
 		echo "bad led arg"

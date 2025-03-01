@@ -73,7 +73,25 @@ dl()
 	destDir="$2"
 	destName="$3"
 
-	yt-dlp -x --audio-quality 0 "$url" --audio-format wav --paths "$destDir" --output "$destName"
+	shift 3 || true
+
+	tempPath="/tmp/$destName"
+	rm -f "$tempPath"
+	yt-dlp -x --audio-quality 0 "$url" --audio-format wav --output "$tempPath"
+
+	# if any other args are provided, pass them to ffmpeg
+	if [[ $# -gt 0 ]]
+	then
+		tempFfmpegPath="/tmp/ffmpeg-dl.wav"
+		rm -f "$tempFfmpegPath"
+		mv "$tempPath" "$tempFfmpegPath"
+		ffmpeg -i "$tempFfmpegPath" $@ -c copy "$tempPath"
+	fi
+
+	# normalize audio
+	# ebu normalization is the default
+	# assuming we're using the right settings, -14 is what spotify uses
+	ffmpeg-normalize "$tempPath" -o "$destDir/$destName" -ext wav --target-level -14
 }
 
 if [[ -z "$(getMusic)" ]]
@@ -83,10 +101,7 @@ fi
 
 if [[ -z "$(getRareMusic)" ]]
 then
-	# TODO normalize volume on downloaded files
-	dl https://m.youtube.com/watch?v=04V0HhJatoc "$rareMusicDir" "tmnt_theme_by_horse_the_band.wav"
-	ffmpeg -i "$rareMusicDir/tmnt_theme_by_horse_the_band.wav" -ss 0:22 -c copy "/tmp/tmnt.wav"
-	mv "/tmp/tmnt.wav" "$rareMusicDir/tmnt_theme_by_horse_the_band.wav"
+	dl https://m.youtube.com/watch?v=04V0HhJatoc "$rareMusicDir" "tmnt_theme_by_horse_the_band.wav" -ss 0:22.2
 	dl https://m.youtube.com/watch?v=3HjqVZp-xeI "$rareMusicDir" "tmnt_theme_out_of_the_shadows_2016.wav"
 	dl https://m.youtube.com/watch?v=OAxZo9DSXjI "$rareMusicDir" "tmnt_theme_by_mike_patton_2022.wav"
 fi
@@ -116,6 +131,8 @@ do
 
 		stopwatch_start
 		setLeds red
+		# initial play log here in case of errors or device turning off during playback
+		"$loggerPath" "bluetooth-play" "beginning playback on $macAddy $logDeviceName" --all
 
 		loopCount=0
 		lastPlayedRare=0
@@ -159,7 +176,7 @@ do
 			logDeviceName="$macAddy"
 		fi
 
-		"$loggerPath" "bluetooth-play" "played on $logDeviceName for $playTime" --all
+		"$loggerPath" "bluetooth-play" "played on $macAddy $logDeviceName for $playTime" --all
 
 		bluetoothctl remove "$macAddy"
 	fi
