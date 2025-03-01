@@ -44,6 +44,8 @@ shutdown() {
 # turn off leds when this script is ended
 trap shutdown SIGINT
 
+setLeds test
+
 mkdir -p "$musicDir"
 mkdir -p "$rareMusicDir"
 mkdir -p "$interstitialsDir"
