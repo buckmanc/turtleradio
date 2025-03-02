@@ -47,6 +47,18 @@ then
 		echo "leds: green"
 elif [[ "${ledArg,,}" == "test" ]]
 then
+	existingColor=''
+	if [[ "$(pinctrl get $green)" == *"| hi"* ]]
+	then
+		existingColor="green"
+	elif [[ "$(pinctrl get $yellow)" == *"| hi"* ]]
+	then
+		existingColor="yellow"
+	elif [[ "$(pinctrl get $red)" == *"| hi"* ]]
+	then
+		existingColor="red"
+	fi
+	
 	# animate the lights a little
 	sleepies="0.1"
 	for i in $(seq 1 2)
@@ -56,6 +68,9 @@ then
 		"$0" red && sleep "$sleepies"
 		"$0" && sleep "$sleepies"
 	done
+
+	# restore the starting led state
+	"$0" "$existingColor"
 	exit 0
 elif [[ -n "$ledArg" ]]
 then
