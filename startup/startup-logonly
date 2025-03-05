@@ -7,6 +7,6 @@ gitRoot="$(git -C "$scriptDir" rev-parse --show-toplevel)"
 
 "$gitRoot/startup/play-boot-sound"
 
-"$gitRoot/utilities/xscreen" wifi-log		'cd "$gitRoot" && wifi-log --loop'
-"$gitRoot/utilities/xscreen" bluetooth-log 'cd "$gitRoot" && ./utilities/bluetoothctl-aggressive-connect --log-only --loop'
-"$gitRoot/utilities/xscreen" wait-push-pull	'cd "$gitRoot" && ./updates/wait-push-pull'
+"$gitRoot/utilities/xscreen" wifi-log		"cd '$gitRoot' && wifi-log --loop"
+"$gitRoot/utilities/xscreen" bluetooth-log "cd '$gitRoot' && ./utilities/bluetoothctl-aggressive-connect --log-only --loop"
+"$gitRoot/utilities/xscreen" wait-push-pull	"cd '$gitRoot' && ./updates/wait-push-pull"
