@@ -4,36 +4,41 @@
 #added experimental = true
 #changed fast connect to true
 
-gitRoot="$(git rev-parse --show-toplevel)"
+# set -e
 
-# sync exclusions in the local dir and in the .config folder
+scriptDir="$(dirname "$0")"
+gitRoot="$(git -C "$scriptDir" rev-parse --show-toplevel)"
+
 exclusionsPath="$gitRoot/bt_exclusions.config"
-exclusionsPathHome="$HOME/.config/bt_exclusions.config"
-if [[ -x "$exclusionsPathHome" ]]
-then
-	rsync -hau "$exclusionsPathHome" "$exclusionsPath"
-	rsync -hau "$exclusionsPath" "$exclusionsPathHome"
-fi
 logPathConnectAttemptsDir="$HOME/.logs/bluetooth_connect_attempts/"
 mkdir -p "$logPathConnectAttemptsDir"
 
-# use the logger next to this script
-loggerPath="$(dirname "$0")/_log"
+pickRightPath() {
+
+	for path in "$@"
+	do
+		if [[ -x "$path" ]]
+		then
+			echo "$path"
+			return
+		fi
+	done
+
+	echo "could not find dependency script path"
+	exit 1
+}
+
+loggerPath="$(pickRightPath "$(dirname "$0")/_log" "$gitRoot/utilities/_log")"
+setLedsPath="$gitRoot/utilities/set-leds.sh"
+
+setLeds() {
+	"$setLedsPath" "$@"
+}
 
 optLogOnly=0
 optLoop=0
 optAllDeets=0
 newRecords=0
-
-setLedsPath="$gitRoot/set-leds.sh"
-setLeds() {
-	if [[ -x "$setLedsPath" ]]
-	then
-		"$setLedsPath" "$@"
-	else
-		echo "bad set-leds path: $setLedsPath"
-	fi
-}
 
 for arg in "$@"
 do

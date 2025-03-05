@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -e
+
+scriptDir="$(dirname "$0")"
+gitRoot="$(git -C "$scriptDir" rev-parse --show-toplevel)"
+
+while true
+do
+	"$gitRoot/utilities/wait-for-good-ping"
+	"$gitRoot/utilities/send-logs-home"
+	"$gitRoot/updates/update"
+
+	"$gitRoot/utilities/xsleep" 1h
+done

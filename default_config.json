@@ -1,0 +1,8 @@
+{
+	"timezone":"America/Chicago",
+	"musicDir":"loggy:/media/content/Dropbox/turtleradio/music",
+	"musicRareDir":"loggy:/media/content/Dropbox/turtleradio/music_rare",
+	"interstitialsDir":"loggy:/media/content/Dropbox/turtleradio/interstitials",
+	"bluetoothExclusions":"loggy:/media/content/Dropbox/turtleradio/bt_exclusions.config",
+	"lastLineWithNoComma":true
+}

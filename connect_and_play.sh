@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 
-gitRoot="$(git rev-parse --show-toplevel)"
+# set -e
+
+scriptDir="$(dirname "$0")"
+gitRoot="$(git -C "$scriptDir" rev-parse --show-toplevel)"
 
 musicDir="$gitRoot/music"
 rareMusicDir="$gitRoot/music_rare"
 interstitialsDir="$gitRoot/interstitials"
 
-syncScriptsPath="$gitRoot/sync-script-changes.sh"
-loggerPath="$gitRoot/_log"
-btAggPairPath="$gitRoot/bluetoothctl-aggressive-pair.sh"
-setLedsPath="$gitRoot/set-leds.sh"
+syncScriptsPath="$gitRoot/updates/sync-script-changes.sh"
+loggerPath="$gitRoot/utilities/_log"
+btAggPairPath="$gitRoot/utilities/bluetoothctl-aggressive-pair.sh"
+setLedsPath="$gitRoot/utilities/set-leds.sh"
 
 "$syncScriptsPath"
 
@@ -39,6 +42,15 @@ setLeds() {
 shutdown() {
 	setLeds
 	exit 0
+}
+
+ytUpdated=0
+ytUpdate() {
+	if [[ "$ytUpdated" == 0 ]]
+	then
+		"$gitRoot/utilities/yt-dlp-update"
+		ytUpdated=1
+	fi
 }
 
 # turn off leds when this script is ended
@@ -71,6 +83,8 @@ getInterstitials()
 
 dl()
 {
+	ytUpdate
+
 	url="$1"
 	destDir="$2"
 	destName="$3"
@@ -83,7 +97,7 @@ dl()
 	then
 		yt-dlp -q -x --audio-quality 0 "$url" --audio-format wav --output "$tempPath"
 	else
-		curl --disable -q -L "$url" -o "$tempPath"
+		curl --disable --silent -L "$url" -o "$tempPath"
 	fi
 
 	# if any other args are provided, pass them to ffmpeg

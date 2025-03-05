@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+logDirs="$(find "$HOME/.logs" -maxdepth 1 -mindepth 1 -type d)"
+
+echo "$logDirs" | while read -r dir
+do
+	if find "$dir" -maxdepth 1 -mindepth 1 -type f | grep -iPq '/\w+_\d{6}\.log$' || [[ "$dir" == *bluetooth* ]]
+	then
+		# echo "syncing $dir"
+		rsync -hau --no-perms --no-owner --no-group "$dir" loggy:.logs/
+	fi
+done

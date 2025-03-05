@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+name="$1"
+cmd="$2"
+
+if [[ -z "$name" ]]
+then
+	name="screeny_weeny"
+fi
+
+if [[ -z "$cmd" ]]
+then
+	# create/reattach to a screen with this name
+	screen -DRRqS "$name" -L
+else
+	# run a command on a screen with this name
+	# bashrc is loaded by this method
+	# screen remains open after and can be used interactively
+	# TODO does cmd need to be escaped?
+	screen -S "$name" -L -dm bash -c "bash --rcfile <(echo '. ~/.bashrc; $cmd ')"
+fi
+

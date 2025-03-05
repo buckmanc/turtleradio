@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+
+set -e
+
+scriptDir="$(dirname "$0")"
+gitRoot="$(git -C "$scriptDir" rev-parse --show-toplevel)"
+
+defaultConfigPath="$gitRoot/default_config.json"
+homeConfigPath="$HOME/.config/turtleradio.json"
+
+safeinstall() {
+
+	packageName="$1"
+	progName="$2"
+
+	if [[ -z "$progName" ]]
+	then
+		progName="$packageName"
+	fi
+
+	if ( ! type "$progName" >/dev/null 2>&1)
+	then
+		sudo apt install "$packageName" -y
+	fi
+}
+
+safeinstallpip() {
+
+	packageName="$1"
+	progName="$2"
+
+	if [[ -z "$progName" ]]
+	then
+		progName="$packageName"
+	fi
+
+	if ( ! type "$progName" >/dev/null 2>&1)
+	then
+		pip install "$packageName" --break-system-packages
+	fi
+}
+
+# pull repos with git for better atomic transfer
+# TODO make sure interrupted pulls resume smoothly
+safepull(){
+
+	localPath="$1"
+	remotePath="$2"
+
+	# using .git specifically so that this still works if the directory exists but is not a repo
+	if [[ ! -d "$localPath/.git" && -n "$remotePath" ]]
+	then
+		remoteDir="$(echo "$remotePath" | sed 's/^.*://g')"
+		git config --global --add safe.directory "$remoteDir"
+		git clone "$remotePath" "$localPath"
+	else
+		# smooth out unattended updates
+		rm -f "$localPath/.git/index.lock"
+		git -C "$localPath" checkout .
+		git -C "$localPath" pull
+	fi
+}
+
+# TODO safe install bluealsa with script
+
+echo "verifying dependencies..."
+safeinstall screen
+safeinstall git
+safeinstall vim
+safeinstall colorized-logs ansi2txt
+safeinstall bc
+safeinstall jq
+safeinstall ffmpeg
+safeinstall python-pip pip
+safeinstallpip ffmpeg-normalize
+# yt-dlp only updated when necessary
+# safeinstall yt-dlp
+
+if [[ ! -f "$homeConfigPath" ]]
+then
+	cp "$defaultConfigPath" "$homeConfigPath"
+fi
+
+configJson="$(cat "$homeConfigPath")"
+
+configTimezone="$(echo "$configJson" | jq -r '.timezone')"
+configMusicDir="$(echo "$configJson" | jq -r '.musicDir')"
+configMusicRareDir="$(echo "$configJson" | jq -r '.musicRareDir')"
+configInterstitialsDir="$(echo "$configJson" | jq -r '.interstitialsDir')"
+configBluetoothExclusions="$(echo "$configJson" | jq -r '.bluetoothExclusions')"
+
+sudo timedatectl set-timezone "$configTimezone"
+
+# don't use gitRoot to update as this script could also be used to install, which could easy happen from another repo, ie the dotfiles repo in a home dir
+# TODO let the user move directories
+# TODO when there is a public repo, add that path below so the script can be used to install
+echo "updating repos..."
+safepull "$HOME/"
+safepull "$HOME/turtleradio"
+
+echo "rsycning rsyncy things..."
+if [[ -n "$configMusicDir" ]]
+then
+	rsync -au --delete "$configMusicDir/" "$gitRoot/music"
+fi
+if [[ -n "$configMusicRareDir" ]]
+then
+	rsync -au --delete "$configMusicRareDir/" "$gitRoot/music_rare"
+fi
+if [[ -n "$configInterstitialsDir" ]]
+then
+	rsync -au --delete "$configInterstitialsDir/" "$gitRoot/interstitials"
+fi
+if [[ -n "$configBluetoothExclusions" ]]
+then
+	rsync -au --delete "$configBluetoothExclusions" "$gitRoot/bt_exclusions.config"
+fi
+
+echo "updating cron jobs..."
+turtleTag="# turtle radio cron job"
+cronJobs="$(crontab -l)"
+if [[ "$cronJobs" != *"$turtleTag"* ]]
+then
+	cronJobs+=$'\n\n'
+	cronJobs+="$gitRoot/startup/startup-turtleradio"$'\n'
+	cronJobs+="$gitRoot/startup/startup-logonly"$'\n'
+
+	crontab "$cronJobs"
+fi
+
+echo "logging update..."
+"$gitRoot/utilities/_log" "turtleradio" "update successful"
+
+echo "blinking led..."
+"$gitRoot/utilities/set-leds.sh" test

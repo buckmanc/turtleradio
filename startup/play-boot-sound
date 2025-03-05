@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -e
+
+scriptDir="$(dirname "$0")"
+gitRoot="$(git -C "$scriptDir" rev-parse --show-toplevel)"
+
+file="$gitRoot/interstitials/cowabunga.wav"
+if [[ -f "$file" ]]
+then
+	echo "cowabunga!"
+	aplay "$file"
+fi
+

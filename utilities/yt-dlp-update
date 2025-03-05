@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+if [[ "$OSTYPE" != *linux* ]]
+then
+	echo "$OSTYPE not supported"
+	exit 1
+fi
+
+if ( type yt-dlp > /dev/null 2>&1 )
+then
+	which yt-dlp
+	yt-dlp -U
+else
+	curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ~/.local/bin/yt-dlp
+	chmod a+rx ~/.local/bin/yt-dlp
+fi
