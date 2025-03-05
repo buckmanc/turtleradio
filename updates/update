@@ -122,10 +122,10 @@ cronJobs="$(crontab -l)"
 if [[ "$cronJobs" != *"$turtleTag"* ]]
 then
 	cronJobs+=$'\n\n'
-	cronJobs+="$gitRoot/startup/startup-turtleradio"$'\n'
-	cronJobs+="$gitRoot/startup/startup-logonly"$'\n'
+	cronJobs+="@reboot $gitRoot/startup/startup-turtleradio $turtleTag"$'\n'
+	cronJobs+="# @reboot $gitRoot/startup/startup-logonly $turtleTag"$'\n'
 
-	crontab "$cronJobs"
+	echo "$cronJobs" | crontab -
 fi
 
 echo "logging update..."
