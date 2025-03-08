@@ -2,6 +2,8 @@
 
 set -e
 
+startTime="$(date +%s)"
+
 scriptDir="$(dirname "$0")"
 gitRoot="$(git -C "$scriptDir" rev-parse --show-toplevel)"
 
@@ -130,6 +132,12 @@ fi
 
 echo "logging update..."
 "$gitRoot/utilities/_log" "turtleradio" "update successful"
+
+
+endTime="$(date +%s)"
+elapsedSeconds=$((endTime - startTime))
+
+echo "update took $elapsedSeconds seconds"
 
 echo "blinking led..."
 "$gitRoot/utilities/set-leds.sh" test
