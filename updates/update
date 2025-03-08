@@ -119,6 +119,8 @@ then
 	rsync -au --delete "$configBluetoothExclusions" "$gitRoot/bt_exclusions.config"
 fi
 
+sudo rsync -au "$gitRoot/.assets/motd" "/etc/motd"
+
 echo "updating cron jobs..."
 turtleTag="# turtle radio cron job"
 cronJobs="$(crontab -l)"
@@ -133,13 +135,6 @@ fi
 
 echo "logging update..."
 "$gitRoot/utilities/_log" "turtleradio" "update successful"
-
-motdPath="/etc/update-motd.d/90-turtleRadio"
-if [[ ! -f "$motdPath" ]]
-then
-	sudo cp "$gitRoot/utilities/90-turtleradio-motd" "$motdPath"
-	sudo chmod +x "$motdPath"
-fi
 
 endTime="$(date +%s)"
 elapsedSeconds=$((endTime - startTime))
