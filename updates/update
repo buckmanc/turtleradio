@@ -136,7 +136,7 @@ echo "logging update..."
 motdPath="/etc/update-motd.d/90-turtleRadio"
 if [[ ! -f "$motdPath" ]]
 then
-	cp "$gitRoot/utilities/90-turtleradio-motd" "$motdPath"
+	sudo cp "$gitRoot/utilities/90-turtleradio-motd" "$motdPath"
 	sudo chmod+x "$motdPath"
 fi
 
