@@ -75,6 +75,7 @@ safeinstall jq
 safeinstall ffmpeg
 safeinstall python-pip pip
 safeinstallpip ffmpeg-normalize
+safeinstall figlet
 # yt-dlp only updated when necessary
 # safeinstall yt-dlp
 
@@ -137,7 +138,7 @@ motdPath="/etc/update-motd.d/90-turtleRadio"
 if [[ ! -f "$motdPath" ]]
 then
 	sudo cp "$gitRoot/utilities/90-turtleradio-motd" "$motdPath"
-	sudo chmod+x "$motdPath"
+	sudo chmod +x "$motdPath"
 fi
 
 endTime="$(date +%s)"

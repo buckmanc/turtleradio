@@ -2,8 +2,6 @@
 
 set -e
 
-scriptDir="$(dirname "$0")"
-gitRoot="$(git -C "$scriptDir" rev-parse --show-toplevel)"
-
-echo "welcome to"
-cat "$gitRoot/.assets/textbanner.txt"
+echo 'welcome to'
+figlet turtle
+figlet radio
