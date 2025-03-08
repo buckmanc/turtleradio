@@ -28,8 +28,8 @@ pickRightPath() {
 	exit 1
 }
 
-loggerPath="$(pickRightPath "$(dirname "$0")/_log" "$gitRoot/utilities/_log")"
-setLedsPath="$gitRoot/utilities/set-leds.sh"
+loggerPath="$(pickRightPath "$gitRoot/bin/_log" "$gitRoot/utilities/_log")"
+setLedsPath="$(pickRightPath "$gitRoot/bin/set-leds.sh" "$gitRoot/utilities/set-leds.sh")"
 
 setLeds() {
 	"$setLedsPath" "$@"
