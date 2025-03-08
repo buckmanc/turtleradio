@@ -5,7 +5,8 @@ set -e
 scriptDir="$(dirname "$0")"
 gitRoot="$(git -C "$scriptDir" rev-parse --show-toplevel)"
 
-"$gitRoot/startup/play-boot-sound"
+# speed up boot slightly by playing the sound under a screen instance
+"$gitRoot/utilities/xscreen" boot-sound "'$gitRoot/startup/play-boot-sound' && exit"
 
 "$gitRoot/utilities/xscreen" wifi-log		"cd "$gitRoot" && ./utilities/wifi-log --loop"
 "$gitRoot/utilities/xscreen" turtleradio	"cd "$gitRoot" && ./connect_and_play.sh"
