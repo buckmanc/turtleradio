@@ -65,7 +65,7 @@ safepull(){
 
 # TODO safe install bluealsa with script
 
-echo "verifying dependencies..."
+echo "🐢 verifying dependencies..."
 safeinstall screen
 safeinstall git
 safeinstall vim
@@ -97,11 +97,11 @@ sudo timedatectl set-timezone "$configTimezone"
 # don't use gitRoot to update as this script could also be used to install, which could easy happen from another repo, ie the dotfiles repo in a home dir
 # TODO let the user move directories
 # TODO when there is a public repo, add that path below so the script can be used to install
-echo "updating repos..."
+echo "🐢 updating repos..."
 safepull "$HOME/"
 safepull "$HOME/turtleradio"
 
-echo "rsycning rsyncy things..."
+echo "🐢 rsycning rsyncy things..."
 if [[ -n "$configMusicDir" ]]
 then
 	rsync -au --delete "$configMusicDir/" "$gitRoot/music"
@@ -121,8 +121,8 @@ fi
 
 sudo rsync -au "$gitRoot/.assets/motd" "/etc/motd"
 
-echo "updating cron jobs..."
-turtleTag="# turtle radio cron job"
+echo "🐢 updating cron jobs..."
+turtleTag="# 🐢 turtle radio cron job"
 cronJobs="$(crontab -l)"
 if [[ "$cronJobs" != *"$turtleTag"* ]]
 then
@@ -133,13 +133,13 @@ then
 	echo "$cronJobs" | crontab -
 fi
 
-echo "logging update..."
+echo "🐢 logging update..."
 "$gitRoot/utilities/_log" "turtleradio" "update successful"
 
 endTime="$(date +%s)"
 elapsedSeconds=$((endTime - startTime))
 
-echo "update took $elapsedSeconds seconds"
+echo "🐢 update took $elapsedSeconds seconds"
 
-echo "blinking led..."
+echo "🐢 blinking led..."
 "$gitRoot/utilities/set-leds.sh" test
