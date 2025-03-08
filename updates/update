@@ -134,7 +134,7 @@ then
 fi
 
 echo "🐢 logging update..."
-"$gitRoot/utilities/_log" "turtleradio" "update successful"
+"$gitRoot/utilities/_log" "turtleradio" "update successful" --all
 
 endTime="$(date +%s)"
 elapsedSeconds=$((endTime - startTime))
