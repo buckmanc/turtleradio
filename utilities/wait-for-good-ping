@@ -1,6 +1,18 @@
 #!/usr/bin/env bash
 
 url="$1"
+timeoutSec=4
+timeoutMs=$((timeoutSec*1000))
+
+if ( type bc > /dev/null 2>&1 )
+then
+	hasBc=1
+	dateFormat="+%s.%N"
+else
+	hasBc=0
+	dateFormat="+%s"
+fi
+
 
 if [[ -z "$url" ]]
 then
@@ -9,15 +21,17 @@ fi
 
 if [[ "$OSTYPE" = "msys" ]]
 then
-	pingy="ping -n 1"
+	pingy="ping -n 1 -w $timeoutMs"
 else
-	pingy="ping -c 1"
+	pingy="ping -c 1 -W $timeoutSec"
 fi
 
 announced=0
 
 while true
 do
+	startTime="$(date "$dateFormat")"
+
 	if $pingy "$url" > /dev/null 2>&1
 	then
 		break
@@ -29,5 +43,32 @@ do
 		announced=1
 	fi
 
-	sleep 2s
+	endTime="$(date "$dateFormat")"
+	doSleep=0
+	if [[ "$hasBc" == 1 ]]
+	then
+		elapsedSeconds="$(echo "$endTime - $startTime" | bc -l)"
+		remainingTimeoutSeconds="$(echo "$timeoutSec - $elapsedSeconds" | bc -l)"
+		if [[ "$(echo "$remainingTimeoutSeconds > 0" | bc -l)" == 1 ]]
+		then
+			doSleep=1
+		fi
+	else
+		elapsedSeconds=$((endTime - startTime))
+		remainingTimeoutSeconds=$((timeoutSec - elapsedSeconds))
+		if [[ "$remainingTimeoutSeconds" -gt 0 ]]
+		then
+			doSleep=1
+		fi
+	fi
+
+	echo "hasBc: $hasBc"
+	echo "elapsedSeconds: $elapsedSeconds"
+	echo "remainingTimeoutSeconds: $remainingTimeoutSeconds"
+	echo "doSleep: $doSleep"
+
+	if [[ "$doSleep" == 1 ]]
+	then
+		sleep "$remainingTimeoutSeconds"
+	fi
 done
