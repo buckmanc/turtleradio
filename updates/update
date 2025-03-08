@@ -133,6 +133,12 @@ fi
 echo "logging update..."
 "$gitRoot/utilities/_log" "turtleradio" "update successful"
 
+motdPath="/etc/update-motd.d/90-turtleRadio"
+if [[ ! -f "$motdPath" ]]
+then
+	cp "$gitRoot/utilities/90-turtleradio-motd" "$motdPath"
+	sudo chmod+x "$motdPath"
+fi
 
 endTime="$(date +%s)"
 elapsedSeconds=$((endTime - startTime))
