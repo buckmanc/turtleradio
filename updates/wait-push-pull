@@ -7,9 +7,24 @@ gitRoot="$(git -C "$scriptDir" rev-parse --show-toplevel)"
 
 while true
 do
+	# wait for internet
 	"$gitRoot/utilities/wait-for-good-ping"
+
+	# inform user update block has started
+	"$gitRoot/utilities/set-leds.sh" test3
+
+	# send logs
 	"$gitRoot/utilities/send-logs-home"
+
+	# inform user actual updates have started
+	"$gitRoot/utilities/set-leds.sh" test2
+
+	# update
 	"$gitRoot/updates/update"
 
+	# inform user updates have completed
+	"$gitRoot/utilities/set-leds.sh" test1
+
+	# wait a while before checking again
 	"$gitRoot/utilities/xsleep" 1h
 done

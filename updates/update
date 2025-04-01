@@ -133,13 +133,8 @@ then
 	echo "$cronJobs" | crontab -
 fi
 
-echo "🐢 logging update..."
-"$gitRoot/utilities/_log" "turtleradio" "update successful" --all
 
 endTime="$(date +%s)"
 elapsedSeconds=$((endTime - startTime))
 
-echo "🐢 update took $elapsedSeconds seconds"
-
-echo "🐢 blinking led..."
-"$gitRoot/utilities/set-leds.sh" test
+"$gitRoot/utilities/_log" "turtleradio" "🐢 update took $elapsedSeconds seconds"

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# 192.0.2.0
+# good ip for testing failure
+
 url="$1"
 timeoutSec=4
 timeoutMs=$((timeoutSec*1000))
@@ -62,10 +65,10 @@ do
 		fi
 	fi
 
-	echo "hasBc: $hasBc"
-	echo "elapsedSeconds: $elapsedSeconds"
-	echo "remainingTimeoutSeconds: $remainingTimeoutSeconds"
-	echo "doSleep: $doSleep"
+	# echo "hasBc: $hasBc"
+	# echo "elapsedSeconds: $elapsedSeconds"
+	# echo "remainingTimeoutSeconds: $remainingTimeoutSeconds"
+	# echo "doSleep: $doSleep"
 
 	if [[ "$doSleep" == 1 ]]
 	then

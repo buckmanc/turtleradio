@@ -14,6 +14,9 @@ fi
 if [[ "$HAS_PINCTRL" == 0 ]]
 then
 	exit 0
+	# pinctrl() {
+	# 	:
+	# }
 fi
 
 # set according to what pins your leds are plugged into
@@ -29,23 +32,23 @@ redPowerArg="dl"
 yellowPowerArg="dl"
 greenPowerArg="dl"
 
-ledArg="$1"
+ledArg="${1,,}"
 
 # turn on the led specified and all others off
 # otherwise, turn them all off
-if [[ "${ledArg,,}" == "red" ]]
+if [[ "$ledArg" == "red" ]]
 then
 		redPowerArg="dh"
 		echo "leds: red"
-elif [[ "${ledArg,,}" == "yellow" ]]
+elif [[ "$ledArg" == "yellow" ]]
 then
 		yellowPowerArg="dh"
 		echo "leds: yellow"
-elif [[ "${ledArg,,}" == "green" ]]
+elif [[ "$ledArg" == "green" ]]
 then
 		greenPowerArg="dh"
 		echo "leds: green"
-elif [[ "${ledArg,,}" == "test" ]]
+elif [[ "$ledArg" == "test"* ]]
 then
 	existingColor=''
 	if [[ "$(pinctrl get $green)" == *"| hi"* ]]
@@ -59,14 +62,32 @@ then
 		existingColor="red"
 	fi
 	
-	# animate the lights a little
 	sleepies="0.1"
-	for i in $(seq 1 2)
+	loops="2"
+
+	# animate the lights a little
+	for i in $(seq 1 "$loops")
 	do
-		"$0" green && sleep "$sleepies"
-		"$0" yellow && sleep "$sleepies"
-		"$0" red && sleep "$sleepies"
-		"$0" && sleep "$sleepies"
+		if [[ "$ledArg" == "test" || "$ledArg" == "test1" ]]
+		then
+			"$0" green && sleep "$sleepies"
+			"$0" yellow && sleep "$sleepies"
+			"$0" red && sleep "$sleepies"
+			"$0" && sleep "$sleepies"
+		elif [[ "$ledArg" == "test2" ]]
+		then
+			"$0" green && sleep "$sleepies"
+			"$0" yellow && sleep "$sleepies"
+			"$0" && sleep "$sleepies"
+		elif [[ "$ledArg" == "test3" ]]
+		then
+			"$0" green && sleep "$sleepies"
+			"$0" && sleep "$sleepies"
+		else
+			# dupe error check but oh well
+			echo "bad led arg"
+			exit 1
+		fi
 	done
 
 	# restore the starting led state
