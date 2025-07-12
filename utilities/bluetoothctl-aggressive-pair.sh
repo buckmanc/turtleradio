@@ -75,6 +75,14 @@ do
 	# stdbuf -oL bluetoothctl scan on | while read -r line
 	while read -r line
 	do
+
+		# if we've connected to any devices this session, blink the LED periodically while scanning
+		if [[ "$connectedEver" == 1 && "$lastBlink" -le "$(date --date '10 seconds ago' '+%s')" ]]
+		then
+			setLeds test3
+			lastBlink="$(date '+%s')"
+		fi
+
 		if [[ "$optAllDeets" == "1" ]]
 		then
 			echo "$line"
@@ -243,6 +251,7 @@ do
 	# otherwise, loop back and restart scanning
 	if [[ "$connectError" == "0" ]]
 	then
+		export connectedEver=1
 		break
 	fi
 
