@@ -9,12 +9,12 @@ musicDir="$gitRoot/music"
 rareMusicDir="$gitRoot/music_rare"
 interstitialsDir="$gitRoot/interstitials"
 
-syncScriptsPath="$gitRoot/updates/sync-script-changes.sh"
+# syncScriptsPath="$gitRoot/updates/sync-script-changes.sh"
 loggerPath="$gitRoot/utilities/_log"
 btAggPairPath="$gitRoot/utilities/bluetoothctl-aggressive-pair.sh"
 setLedsPath="$gitRoot/utilities/set-leds.sh"
 
-"$syncScriptsPath"
+# "$syncScriptsPath"
 
 stopwatch_start(){
 	if [[ -z "$startTime" ]]

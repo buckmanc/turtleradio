@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# scheduling this on dev machine
+# instead of running in prod
+# to avoid fatal script destruction on interruption
+
 homeScriptsDir="$HOME/bin"
 if [[ ! -d "$homeScriptsDir" ]]
 then
