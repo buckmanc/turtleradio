@@ -11,6 +11,6 @@ then
 	which yt-dlp
 	yt-dlp -U
 else
-	curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ~/.local/bin/yt-dlp
+	curl --create-dirs -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ~/.local/bin/yt-dlp
 	chmod a+rx ~/.local/bin/yt-dlp
 fi

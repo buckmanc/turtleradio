@@ -2,10 +2,29 @@
 
 name="$1"
 cmd="$2"
+configPath="$HOME/.config/xscreen.json"
+optUsingConfig=0
 
 if [[ -z "$name" ]]
 then
 	name="screeny_weeny"
+fi
+
+# if there's no command, no matching screen, and the config path exists
+# then check the config file for a matching pre-defined command to run
+if [[ -z "$cmd" ]] && [[ -f "$configPath" ]] && ! screen -ls "$name" > /dev/null 2>&1
+then
+	configJson="$(jq ".[] | to_entries | map(select(.key|match(\"^$name\";\"i\")))[]" "$configPath")"
+	if [[ -n "$configJson" ]]
+	then
+		name="$(echo "$configJson" | jq -r '.key')"
+		cmd="$(echo "$configJson" | jq -r '.value')"
+		optUsingConfig=1
+	fi
+#
+# 	echo "configJson: $configJson"
+# else
+# 	echo "nopers"
 fi
 
 if [[ -z "$cmd" ]]
@@ -16,7 +35,14 @@ else
 	# run a command on a screen with this name
 	# bashrc is loaded by this method
 	# screen remains open after and can be used interactively
+	
+	detachedArg="-d"
+	if [[ "$optUsingConfig" == 1 ]]
+	then
+		detachedArg=""
+	fi
+
 	# TODO does cmd need to be escaped?
-	screen -S "$name" -L -dm bash -c "bash --rcfile <(echo '. ~/.bashrc; $cmd ')"
+	screen -S "$name" -L $detachedArg -m bash -c "bash --rcfile <(echo '. ~/.bashrc; $cmd ')"
 fi
 
