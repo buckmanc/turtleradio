@@ -63,8 +63,6 @@ safepull(){
 	fi
 }
 
-# TODO safe install bluealsa with script
-
 echo "🐢 verifying dependencies..."
 safeinstall screen
 safeinstall git
@@ -73,11 +71,16 @@ safeinstall colorized-logs ansi2txt
 safeinstall bc
 safeinstall jq
 safeinstall ffmpeg
-safeinstall python-pip pip
+safeinstall python3-pip pip
 safeinstallpip ffmpeg-normalize
 safeinstall figlet
 # yt-dlp only updated when necessary
 # safeinstall yt-dlp
+
+if ( ! type "bluealsa" >/dev/null 2>&1)
+then
+	"$gitRoot/updates/bluealsa-install.sh"
+fi
 
 if [[ ! -f "$homeConfigPath" ]]
 then
