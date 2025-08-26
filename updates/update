@@ -77,7 +77,9 @@ safeinstall figlet
 # yt-dlp only updated when necessary
 # safeinstall yt-dlp
 
-if ( ! type "bluealsa" >/dev/null 2>&1)
+# some platforms don't have the "bluealsa" app for some reason
+# if ( ! type "bluealsa" >/dev/null 2>&1)
+if ( ! type "bluealsa-aplay" >/dev/null 2>&1)
 then
 	"$gitRoot/updates/bluealsa-install.sh"
 fi
