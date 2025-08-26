@@ -7,6 +7,6 @@ do
 	if find "$dir" -maxdepth 1 -mindepth 1 -type f | grep -iPq '/\w+_\d{6}\.log$' || [[ "$dir" == *bluetooth* ]]
 	then
 		# echo "syncing $dir"
-		rsync -hau --no-perms --no-owner --no-group "$dir" loggy:.logs/
+		rsync -hauz --no-perms --no-owner --no-group --append-verify "$dir" loggy:.logs/
 	fi
 done

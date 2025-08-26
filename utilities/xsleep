@@ -2,12 +2,16 @@
 
 # use regex replace to support sleep syntax
 # 1s, 1h, 1m, 1d etc
+# final line formats unknown parameters
+# allowing for month, year, etc
 input=$(echo "$*" \
-	| perl -pe 's/(\d+)s( |$)/\1second\2/g' \
-	| perl -pe 's/(\d+)m( |$)/\1minute\2/g' \
-	| perl -pe 's/(\d+)h( |$)/\1hour\2/g' \
-	| perl -pe 's/(\d+)d( |$)/\1day\2/g' \
-	| perl -pe 's/(\d+)d( |$)/\1week\2/g' \
+	| perl -p \
+	-e 's/(\d+)s(?=\d| |$)/\1second /g;' \
+	-e 's/(\d+)m(?=\d| |$)/\1minute /g;' \
+	-e 's/(\d+)h(?=\d| |$)/\1hour /g;' \
+	-e 's/(\d+)d(?=\d| |$)/\1day /g;' \
+	-e 's/(\d+)w(?=\d| |$)/\1week /g;' \
+	-e 's/(\d+[a-zA-Z]+)(?=\d| |$)/\1 /g;'
 )
 
 startEpochSec=$(date +"%s")
@@ -21,26 +25,75 @@ secToWait="$((targetEpochSec-startEpochSec))"
 # echo "secToWait: $secToWait"
 # echo "--------"
 
+if [[ -z "$secToWait" ]]
+then
+	echo "time missing"
+	exit 1
+elif [[ "$input" == *.* ]]
+then
+	echo "can't do decimals sorry man"
+	exit 1
+elif [[ "$secToWait" -lt 0 || -z "$targetEpochSec" ]]
+then
+	echo "invalid time"
+	exit 1
+fi
+
 cursorVisible() {
-	# should be tput cnomr, but that disables cursor blink for some reason
-	tput cvvis
-	exit
+	# cvvis doesn't work in termux
+	# but cnorm disables cursor blink on other platforms
+	if [[ "$OSTYPE" == "linux-android" ]]
+	then
+		tput cnorm
+	else
+		tput cvvis
+	fi
 }
 
-trap cursorVisible SIGINT
+# restore cursor on interrupt
+# exit with error code for interrupt
+# that way you can cancel a task like 'xsleep 1h && txtme "do stuff"'
+trap "cursorVisible ; exit 130" SIGINT
 
 tput civis
 
 echo "sleeping til $(date --date=@"$targetEpochSec" --rfc-3339=second | cut -c -19)"
 
+# could optionally use a "--quiet" arg to select this method
+# just waiting the full time with no countdown
+# sleep "${secToWait}s"
 
-sleep "$secToWait"
+secRemaining="$secToWait"
+sleepInterval=5
+
+while [[ "$secRemaining" -gt 0 ]]
+do
+	# manual timespan formatting
+	hours="$(printf %02d $((secRemaining / 3600)))"
+	minutes="$(printf %02d $(( (secRemaining % 3600) / 60 )))"
+	seconds="$(printf %02d $(( secRemaining % 60 )))"
+
+	# format the time string and trim off unused units from the front
+	timeString="$hours:$minutes:$seconds"
+	timeString="$(echo "${timeString:0:11}" | perl -pe 's/^(00:)+//g')"
+
+	# clear line and print remaining time span
+	echo -ne "\r\033[2K$timeString"
+
+	# don't sleep longer than necessary
+	# specifying seconds in case of serious formatting problems
+	if [[ "$secRemaining" -gt "$sleepInterval" ]]
+	then
+		sleep "${sleepInterval}s"
+	else
+		sleep "${secRemaining}s"
+	fi
+
+	# update this at the end of the loop
+	# so loop and sleep conditions match
+	secRemaining="$((targetEpochSec-$(date +"%s")))"
+done
 
 cursorVisible
 
-# TODO make this a countdown instead
-# while [ "$targetEpochSec" > $(date +"%s") ]
-# do
-# 	echo ""
-# 	sleep 1s
-# done
+echo
