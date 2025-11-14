@@ -93,6 +93,7 @@ dl()
 
 	tempPath="/tmp/$destName"
 	rm -f "$tempPath"
+	# TODO add playlist support
 	if [[ "$url" == *youtu*  || "$url" == *dailymotion* ]]
 	then
 		yt-dlp -q -x --audio-quality 0 "$url" --audio-format wav --output "$tempPath"
@@ -133,6 +134,8 @@ if [[ -z "$(getInterstitials)" ]]
 then
 	echo "downloading default interstitials..."
 	dl https://www.myinstants.com/media/sounds/cowabunga-tmnt.mp3 "$interstitialsDir" "cowabunga.wav"
+	# TODO add a yt playlist of default interstitials
+	# dl "$(echo "$sneakyurl" | base64 -d)" "$interstitialsDir"
 fi
 
 macAddyRegex='([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'
