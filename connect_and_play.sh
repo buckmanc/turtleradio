@@ -5,14 +5,12 @@
 scriptDir="$(dirname "$0")"
 gitRoot="$(git -C "$scriptDir" rev-parse --show-toplevel)"
 
-musicDir="$gitRoot/music"
-rareMusicDir="$gitRoot/music_rare"
-interstitialsDir="$gitRoot/interstitials"
-
 # syncScriptsPath="$gitRoot/updates/sync-script-changes.sh"
 loggerPath="$gitRoot/utilities/_log"
 btAggPairPath="$gitRoot/utilities/bluetoothctl-aggressive-pair.sh"
 setLedsPath="$gitRoot/utilities/set-leds.sh"
+musicPathsPath="$gitRoot/utilities/music-paths.sh"
+aplayPath="$gitRoot/utilities/aplay_turtleradio.sh"
 
 # "$syncScriptsPath"
 
@@ -58,28 +56,11 @@ trap shutdown SIGINT
 
 # setLeds test
 
+source "$musicPathsPath"
+
 mkdir -p "$musicDir"
 mkdir -p "$rareMusicDir"
 mkdir -p "$interstitialsDir"
-
-getFile()
-{
-	dir="$1"
-	find "$dir" -type f -iname '*.wav' | shuf -n 1
-}
-
-getMusic()
-{
-	getFile "$musicDir"
-}
-getRareMusic()
-{
-	getFile "$rareMusicDir"
-}
-getInterstitials()
-{
-	getFile "$interstitialsDir"
-}
 
 dl()
 {
@@ -166,39 +147,8 @@ do
 		# initial play log here in case of errors or device turning off during playback
 		"$loggerPath" "bluetooth-play" "beginning playback on $macAddy $logDeviceName" --all
 
-		loopCount=0
-		lastPlayedRare=0
-
-		# play some audio!
-		while true
-		do
-			loopCount=$((loopCount+1))
-			if [[ "$loopCount" -gt 2 && "$lastPlayedRare" == 0 && "$(shuf -n 1 -i 1-3)" == 1 ]]
-			then
-				musicPath="$(getRareMusic)"
-				lastPlayedRare=1
-			else
-				musicPath="$(getMusic)"
-				lastPlayedRare=0
-			fi
-
-			interstitialPath="$(getInterstitials)"
-
-			if ! aplay -D "bluealsa:DEV=$macAddy,PROFILE=a2dp" "$musicPath"
-			then
-				break
-			fi
-
-			if [[ -n "$interstitialPath" ]]
-			then
-				if ! aplay -D "bluealsa:DEV=$macAddy,PROFILE=a2dp" "$interstitialPath"
-				then
-					break
-				fi
-			fi
-
-		done
-
+		"$aplayPath" "$macAddy"
+	
 		playTime="$(stopwatch_stop)"
 		setLeds green
 		logDeviceName="$deviceName"
