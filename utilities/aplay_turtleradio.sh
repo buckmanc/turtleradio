@@ -25,13 +25,12 @@ yayplay(){
 	fileName="$(basename "$audioPath")"
 	interrupted=0
 
-	# TODO cleaner output
 	echo "PLAYING: $fileName"
 
 	# run a background aplay if we're doing both
 	if [[ -n "$optMacAddress" && "$optBoth" == 1 ]]
 	then
-		aplay "$musicPath" > /dev/null &
+		aplay "$audioPath" > /dev/null &
 	fi
 
 	# primary output
@@ -42,7 +41,7 @@ yayplay(){
 			interrupted=1
 		fi
 	else
-		if ! aplay "$musicPath" > /dev/null 2>&1
+		if ! aplay "$audioPath" > /dev/null 2>&1
 		then
 			interrupted=1
 		fi
