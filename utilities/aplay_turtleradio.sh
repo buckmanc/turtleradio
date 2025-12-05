@@ -2,6 +2,8 @@
 
 scriptDir="$(dirname "$0")"
 gitRoot="$(git -C "$scriptDir" rev-parse --show-toplevel)"
+rareMusicChanceDefault=30
+rareMusicChance="$rareMusicChanceDefault"
 
 source "$gitRoot/utilities/music-paths.sh"
 
@@ -59,19 +61,18 @@ yayplay(){
 }
 
 loopCount=0
-lastPlayedRare=0
 
 # play some audio!
 while true
 do
 	loopCount=$((loopCount+1))
-	if [[ "$loopCount" -gt 2 && "$lastPlayedRare" == 0 && "$(shuf -n 1 -i 1-3 --random-source='/dev/urandom')" == 1 ]]
+	if [[ "$loopCount" -gt 1 && "$(shuf -n 1 -i 0-100 --random-source='/dev/urandom')" -ge "$rareMusicChance" ]]
 	then
 		musicPath="$(getRareMusic)"
-		lastPlayedRare=1
+		rareMusicChance="$rareMusicChanceDefault"
 	else
 		musicPath="$(getMusic)"
-		lastPlayedRare=0
+		rareMusicChance=$((rareMusicChance+10))
 	fi
 
 	interstitialPath="$(getInterstitials)"
