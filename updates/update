@@ -57,6 +57,7 @@ safepull(){
 		git clone "$remotePath" "$localPath"
 	else
 		# smooth out unattended updates
+		find "$localPath/.git/objects" -type f -empty -delete
 		rm -f "$localPath/.git/index.lock"
 		git -C "$localPath" checkout .
 		git -C "$localPath" pull
