@@ -13,10 +13,10 @@ fi
 # back out if pinctrl is not installed
 if [[ "$HAS_PINCTRL" == 0 ]]
 then
-	exit 0
-	# pinctrl() {
-	# 	:
-	# }
+	# exit 0
+	pinctrl() {
+		:
+	}
 fi
 
 # set according to what pins your leds are plugged into
@@ -62,13 +62,19 @@ then
 		existingColor="red"
 	fi
 	
-	sleepies="0.1"
-	loops="2"
+	if [[ "$ledArg" == "testloop" ]]
+	then
+		sleepies="2"
+		loops="1000000"
+	else
+		sleepies="0.1"
+		loops="2"
+	fi
 
 	# animate the lights a little
 	for i in $(seq 1 "$loops")
 	do
-		if [[ "$ledArg" == "test" || "$ledArg" == "test1" ]]
+		if [[ "$ledArg" == "test" || "$ledArg" == "test1" || "$ledArg" == "testloop" ]]
 		then
 			"$0" green && sleep "$sleepies"
 			"$0" yellow && sleep "$sleepies"
