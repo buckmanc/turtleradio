@@ -22,9 +22,13 @@ fi
 # set according to what pins your leds are plugged into
 # if you have no leds this has no function
 # designed for the pi stoplight, but should work fine for any set of 3 pins
-red=13
-yellow=19
+red=19
+yellow=13
 green=26
+
+# plugs into these pins on the inside row
+# GXXXOOOOOOOOOOO
+# OOOOOOOOOOOOOOO
 
 # dl = driving low, aka "off"
 # dh = driving high, aka "on"
